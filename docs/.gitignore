@@ -1,0 +1,23 @@
+# Files to ignore while saving
+# C ignores
+*.o
+*.a
+*.so
+a.out
+# Editor backup files
+*.bak
+*.swp
+*.swo
+*~
+# Others
+*.tar
+*.tar.gz
+*.zip
+*.exe
+*.tgz
+*.pkg
+*.dmg
+*.img
+*.iso
+*.dll
+
