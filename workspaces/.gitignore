@@ -1,0 +1,26 @@
+### PSoCCreator ###
+# Modified from https://www.gitignore.io/?templates=psoccreator
+# You may add additional directories to exclude
+
+# Project Settings
+*.cywrk.*
+*.cyprj.*
+
+# Generated Assets and Resources
+Debug/
+Release/
+Export/
+CortexM0/
+CortexM0p/
+CortexM4/
+codegentemp/
+Generated_Source/
+gcc/
+*_datasheet.pdf
+*_timing.html
+*.cycdx
+*.cyfit
+*.rpt
+*.svd
+*.log
+*.zip
