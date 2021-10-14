@@ -7,7 +7,10 @@
   <Group key="DWRInstGuidMapping">
     <Group key="Pin">
       <Data key="9913fb2f-8109-4686-9dd6-539d812fe14c" value="LED_1" />
-      <Data key="a61270bc-07ec-447d-ac9e-34cfe85c30e9" value="LED" />
+      <Data key="0113321b-4a37-46f6-8407-2f8646c68756" value="Pin_1" />
+      <Data key="a2de498d-c098-45a4-a7c7-c831aae4827b" value="Pin_2" />
+      <Data key="a61270bc-07ec-447d-ac9e-34cfe85c30e9" value="Pin_3" />
+      <Data key="da9b3478-7098-4b83-84f3-c640e5aca0ea" value="Pin_2" />
     </Group>
   </Group>
   <Group key="M0S8Clock">
@@ -599,24 +602,28 @@
       <Group key="0">
         <Data key="Port Format" value="9,0" />
       </Group>
-      <Group key="1">
-        <Data key="Port Format" value="9,1" />
+    </Group>
+    <Group key="0113321b-4a37-46f6-8407-2f8646c68756">
+      <Group key="0">
+        <Data key="Port Format" value="10,0" />
       </Group>
-      <Group key="2">
-        <Data key="Port Format" value="9,2" />
+    </Group>
+    <Group key="a2de498d-c098-45a4-a7c7-c831aae4827b">
+      <Group key="0">
+        <Data key="Port Format" value="9,0" />
       </Group>
     </Group>
     <Group key="a61270bc-07ec-447d-ac9e-34cfe85c30e9">
       <Group key="0">
         <Data key="Port Format" value="9,0" />
       </Group>
-      <Group key="1">
-        <Data key="Port Format" value="9,1" />
-      </Group>
-      <Group key="2">
-        <Data key="Port Format" value="9,2" />
+    </Group>
+    <Group key="da9b3478-7098-4b83-84f3-c640e5aca0ea">
+      <Group key="0">
+        <Data key="Port Format" value="9,0" />
       </Group>
     </Group>
+    <Group key="UnAssigned Pins" />
   </Group>
   <Group key="PlaceDir">
     <Data key="count" value="0" />

@@ -6,8 +6,11 @@
   <Data key="DataVersionKey" value="2" />
   <Group key="DWRInstGuidMapping">
     <Group key="Pin">
-      <Data key="9913fb2f-8109-4686-9dd6-539d812fe14c" value="LED_1" />
-      <Data key="a61270bc-07ec-447d-ac9e-34cfe85c30e9" value="LED" />
+      <Data key="4cca878b-77b5-471d-8aeb-ad6925202455" value="Echo_Pin" />
+      <Data key="1783a93b-3252-4d55-9919-c2acbe19279a" value="LED_1" />
+      <Data key="9913fb2f-8109-4686-9dd6-539d812fe14c" value="Trig_Pin" />
+      <Data key="27154321-f352-4b22-af03-5cece353c01e" value="LED" />
+      <Data key="a61270bc-07ec-447d-ac9e-34cfe85c30e9" value="Pin_1" />
     </Group>
   </Group>
   <Group key="M0S8Clock">
@@ -595,7 +598,22 @@
     </Group>
   </Group>
   <Group key="Pin2">
+    <Group key="4cca878b-77b5-471d-8aeb-ad6925202455">
+      <Group key="0">
+        <Data key="Port Format" value="10,2" />
+      </Group>
+    </Group>
+    <Group key="1783a93b-3252-4d55-9919-c2acbe19279a">
+      <Group key="0">
+        <Data key="Port Format" value="9,0" />
+      </Group>
+    </Group>
     <Group key="9913fb2f-8109-4686-9dd6-539d812fe14c">
+      <Group key="0">
+        <Data key="Port Format" value="10,1" />
+      </Group>
+    </Group>
+    <Group key="27154321-f352-4b22-af03-5cece353c01e">
       <Group key="0">
         <Data key="Port Format" value="9,0" />
       </Group>
@@ -608,13 +626,7 @@
     </Group>
     <Group key="a61270bc-07ec-447d-ac9e-34cfe85c30e9">
       <Group key="0">
-        <Data key="Port Format" value="9,0" />
-      </Group>
-      <Group key="1">
-        <Data key="Port Format" value="9,1" />
-      </Group>
-      <Group key="2">
-        <Data key="Port Format" value="9,2" />
+        <Data key="Port Format" value="5,1" />
       </Group>
     </Group>
   </Group>

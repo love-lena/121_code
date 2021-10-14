@@ -10,16 +10,19 @@
  * ========================================
 */
 #include "project.h"
-#include "compAPI.h"
-#include "regLED.h"
 
 int main(void)
 {
     __enable_irq(); /* Enable global interrupts. */
+    /* Enable CM4.  CY_CORTEX_M4_APPL_ADDR must be updated if CM4 memory layout is changed. */
+    Cy_SysEnableCM4(CY_CORTEX_M4_APPL_ADDR); 
 
-    // Need to switch TopDesign layout to switch between these
-    compToggleComponentLEDs();
-    //regToggleComponentLEDs();
+    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
+
+    for(;;)
+    {
+        /* Place your application code here. */
+    }
 }
 
 /* [] END OF FILE */
