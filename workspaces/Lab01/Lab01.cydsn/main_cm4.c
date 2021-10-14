@@ -18,8 +18,8 @@ int main(void)
     __enable_irq(); /* Enable global interrupts. */
 
     // Need to switch TopDesign layout to switch between these
-    compToggleComponentLEDs();
-    //regToggleComponentLEDs();
+    //compToggleComponentLEDs();
+    regToggleComponentLEDs();
 }
 
 /* [] END OF FILE */

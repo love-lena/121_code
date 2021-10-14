@@ -15,8 +15,13 @@
 void init_uart_printf(void);
 void uart_printf(char *print_string);
 
+bool checking = false;
+
 void Echo_timer_ISR(void) {
-    uart_printf("Echo int\n\r");
+    if(!checking)
+        return;
+    checking = false;
+    //uart_printf("Echo int\n\r");
     //what i want to do
     uint32_t clockedTime = Echo_timer_GetCounter();
     uint32_t baseTime = 65535;
@@ -30,20 +35,23 @@ void Echo_timer_ISR(void) {
     sprintf(str, "%lu\n\r", time);
     uart_printf(str);
     
-    if(time < timeTo1m) {
+    if(time != 0 && time < timeTo1m) {
         //IN RANGE - turn on LED
-        
+        uart_printf("in range\n\r");
         //constant based on 1MHz clock, 
         //d=1.7*10^-8*cc
-        uint32_t const fiveSeconds = 39062;
-        Cy_TCPWM_Counter_SetCounter(Five_second_HW, Five_second_CNT_NUM, 0);
-        Cy_TCPWM_TriggerStart(Five_second_HW, Five_second_CNT_NUM);
+        //uint32_t const fiveSeconds = 39062;
+        Trigger_Reg_1_Write(1);
+        Five_second_SetCounter(39062);
+        //Cy_TCPWM_Counter_SetCounter(Five_second_HW, Five_second_CNT_NUM, 39062);
+        Cy_TCPWM_TriggerStart(Five_second_HW, Five_second_CNT_MASK);
     }
     
-    Cy_TCPWM_TriggerStopOrKill(Echo_timer_HW, Echo_timer_CNT_MASK);
+    //Cy_TCPWM_TriggerStopOrKill(Echo_timer_HW, Echo_timer_CNT_MASK);
     //Echo_timer_SetCounter(65535);
-    uint32_t interrupts = Cy_TCPWM_GetInterruptStatusMasked(Echo_timer_HW, 0);
-    Cy_TCPWM_ClearInterrupt(Echo_timer_HW, 0, interrupts);
+    //Echo_timer_int_cfg
+    //uint32_t interrupts = Cy_TCPWM_GetInterruptStatusMasked(Echo_timer_HW, 0);
+    //Cy_TCPWM_ClearInterrupt(Echo_timer_HW, 0, interrupts);
 }
 
 int main(void)
@@ -72,14 +80,14 @@ int main(void)
     for(;;)
     {
         
-        
+        /*
         if(Echo_timer_GetCounter() != 65535) {
             int capture = Echo_timer_GetCounter();
             char str2[32];
             sprintf(str2, "%d\n\r", capture);
             uart_printf(str2);
         }
-        /*
+        
         if(Trigger_Reg_Read() != 0) {
             int thingy = Trigger_Reg_Read();
             char str[32];
@@ -89,6 +97,7 @@ int main(void)
         */
         if(Half_second_GetCounter() == 0) {
             uart_printf("trigger pulse\n\r");
+            checking = true;
             Trigger_Reg_Write(1);
             Trigger_pulse_SetCounter(0);
             Cy_TCPWM_TriggerStart(Trigger_pulse_HW, Trigger_pulse_CNT_MASK); //Start timer to turn off pulse
@@ -99,13 +108,13 @@ int main(void)
             Cy_TCPWM_TriggerStart(Half_second_HW, Half_second_CNT_MASK);
         }
         
-        
-        if(Five_second_GetCompare0() == 0) {
-            Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
-        } else {
+        /*
+        if(Five_second_GetCompare0() < 39000) {
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+        } else {
+            Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
         }
-        
+        */
         
     }
 }
