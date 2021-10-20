@@ -15,8 +15,8 @@
 void init_uart_printf(void);
 void uart_printf(char *print_string);
 
-uint16 buffer_1[256];
-uint16 buffer_2[256];
+uint16_t buffer_1[256];
+uint16_t buffer_2[256];
 
 int working_buffer = 1; //1 and 2 are valid values
 int readable_buffer = 0; //1 and 2 are valid values, 0 means none are ready
@@ -24,18 +24,10 @@ int readable_buffer = 0; //1 and 2 are valid values, 0 means none are ready
 bool dma_1_error = false;
 
 void DMA_done_ISR(void) {
-    //uart_printf("transfer done!n\r");
-    
-    Cy_DMA_Channel_ClearInterrupt(DMA_1_HW, DMA_1_DW_CHANNEL);
-    
-    if (Cy_DMA_Channel_GetStatus(DMA_1_HW, DMA_1_DW_CHANNEL) ==
-        CY_DMA_INTR_CAUSE_COMPLETION) {
-            readable_buffer = working_buffer;
-            working_buffer = working_buffer == 1 ? 2 : 1;   //switch working buffer
-        } else {
-            /* DMA error, abnormal termination */
-            dma_1_error = true;
-    }
+    readable_buffer = working_buffer;
+    working_buffer = (working_buffer == 1) ? 2 : 1;   //switch working buffer
+            
+    Cy_DMA_Channel_ClearInterrupt(DMA_1_HW, DMA_1_DW_CHANNEL);      
 }
 
 void lcd_init(void);
@@ -43,65 +35,60 @@ void lcd_write(char *data, uint8_t size);
 void lcd_cursor(uint8_t row, uint8_t col);
 void lcd_clear(void);
 
+uint16_t find_crossing_point(uint16_t* buffer) {
+    uint16_t max_value = 0;
+    uint16_t min_value = UINT16_MAX;
+    for(int i = 0; i<256; i++) {
+        if(buffer[i] > max_value)
+            max_value = buffer[i];
+        else if(buffer[i] < min_value)
+            min_value = buffer[i];
+    }
+    return (max_value+min_value)/2;
+}
+
 int main(void)
 {
+    Cy_SysLib_Delay(50);
     lcd_init();
-    lcd_cursor(0,2);
-    char msg[] = "Starting....";
-    lcd_write(msg, sizeof(msg));
     
     init_uart_printf();
-    Cy_SysInt_Init(&DMA_1_INT_cfg, DMA_done_ISR);
-    NVIC_EnableIRQ(DMA_1_INT_cfg.intrSrc);
-    __enable_irq(); /* Enable global interrupts. */
 
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
+    __enable_irq();
     
-    
-    /* Allocate descriptor */
     cy_stc_dma_channel_config_t channelConfig;
-    /* Set parameters based on settings of DMA component */
     channelConfig.descriptor = &DMA_1_Descriptor_1;
-    /* Start of descriptor chain */
     channelConfig.preemptable = DMA_1_PREEMPTABLE;
     channelConfig.priority = DMA_1_PRIORITY;
     channelConfig.enable = false;
-    channelConfig.bufferable = DMA_1_BUFFERABLE;
-    
+    //channelConfig.bufferable = DMA_1_BUFFERABLE;
     
     Cy_DMA_Descriptor_Init(&DMA_1_Descriptor_1,&DMA_1_Descriptor_1_config);
-    Cy_DMA_Descriptor_SetSrcAddress(&DMA_1_Descriptor_1,(uint32_t *) &(SAR->CHAN_RESULT));
+    Cy_DMA_Descriptor_SetSrcAddress(&DMA_1_Descriptor_1,(uint32_t *) &(SAR->CHAN_RESULT[0]));
     Cy_DMA_Descriptor_SetDstAddress(&DMA_1_Descriptor_1,buffer_1);
     
     Cy_DMA_Descriptor_Init(&DMA_1_Descriptor_2,&DMA_1_Descriptor_2_config);
-    Cy_DMA_Descriptor_SetSrcAddress(&DMA_1_Descriptor_2,(uint32_t *) &(SAR->CHAN_RESULT));
+    Cy_DMA_Descriptor_SetSrcAddress(&DMA_1_Descriptor_2,(uint32_t *) &(SAR->CHAN_RESULT[0]));
     Cy_DMA_Descriptor_SetDstAddress(&DMA_1_Descriptor_2,buffer_2);
-        
-        
+    
     Cy_DMA_Channel_Init(DMA_1_HW, DMA_1_DW_CHANNEL,&channelConfig);
-    
-    Cy_DMA_Enable(DMA_1_HW);
     Cy_DMA_Channel_Enable(DMA_1_HW, DMA_1_DW_CHANNEL);
-    
     Cy_DMA_Enable(DMA_1_HW);
+    
+    Cy_SysInt_Init(&DMA_1_INT_cfg, DMA_done_ISR);
+    NVIC_EnableIRQ(DMA_1_INT_cfg.intrSrc);
     
     Cy_DMA_Channel_SetInterruptMask(DMA_1_HW, DMA_1_DW_CHANNEL, CY_DMA_INTR_MASK);
     
     ADC_1_Start();
     ADC_1_StartConvert();
     
-    //Cy_TrigMux_Connect(TRIG14_IN_PASS_TR_SAR_OUT, TRIG14_OUT_TR_GROUP0_INPUT50,
-    //    CY_TR_MUX_TR_INV_DISABLE, TRIGGER_TYPE_PASS_TR_SAR_OUT);
-    //Cy_TrigMux_Connect(TRIG1_IN_TR_GROUP14_OUTPUT7, TRIG1_OUT_CPUSS_DW1_TR_IN0,
-    //    CY_TR_MUX_TR_INV_DISABLE, TRIGGER_TYPE_TR_GROUP_OUTPUT__LEVEL);
-        
-    //Cy_TrigMux_Connect(TRIG14_IN_PASS_TR_CTDAC_EMPTY, TRIG14_OUT_TR_GROUP0_INPUT50,
-    //    CY_TR_MUX_TR_INV_DISABLE, TRIGGER_TYPE_PASS_TR_CTDAC_EMPTY);
-    //Cy_TrigMux_Connect(TRIG1_IN_TR_GROUP14_OUTPUT7, TRIG1_OUT_CPUSS_DW1_TR_IN0,
-    //    CY_TR_MUX_TR_INV_DISABLE, TRIGGER_TYPE_TR_GROUP_OUTPUT__LEVEL);
-    
-    
     bool print_output = false;
+    
+    int cur_freq = 0;
+    int update_cycles = 0;
+
+    int plast = 0;
     
     for(;;)
     {
@@ -109,49 +96,64 @@ int main(void)
             uint16* read_from_buffer = readable_buffer==1 ? buffer_1 : buffer_2;
             readable_buffer = 0;
             
-            int p1 = 0;
-            int p2 = 0;
-            int dir = read_from_buffer[1]-read_from_buffer[0];
-            uint16 prev_value = read_from_buffer[1];
+            uint16_t cross_point = find_crossing_point(read_from_buffer);
+        
+            int below = read_from_buffer[0] < cross_point;
             
-            //optimization needed: stop looping if p2 found and not printing
-            for(int i = 2; i < 256; i++) { 
-                if(!p2 && (read_from_buffer[i]-prev_value) * dir < 0) { //if dir change
-                    if(!p1)
-                        p1 = i;
-                    else 
-                        p2 = i;
-                }
-                prev_value = read_from_buffer[i];
-                
+            int p1=0;
+            int p2=0;
+            
+            for(int i = 1; i < 256; i++) {
                 char str[8];
-                sprintf(str, "%03x: ", i); 
-                uint16 elem1 = read_from_buffer[i]; //max is FFFF
-                char str2[8];
-                sprintf(str2, "%04x ", elem1);
-                
-                if(print_output) {
-                    uart_printf(str);
-                    uart_printf(str2);
-                    uart_printf("\n\r");
+                if(below) {
+                    if(read_from_buffer[i] > cross_point) {
+                        below = 0;
+                        if(!p1)
+                            p1=i;
+                        else if(!p2) {
+                            p2=i;
+                            cur_freq = 1000/(255+p2-plast);
+                        }
+                        else 
+                            plast = i;
+                    }
+                } else {
+                    if(read_from_buffer[i] < cross_point) {
+                        below = 1;
+                        if(!p1)
+                            p1=i;
+                        else if(!p2) {
+                            p2=i;
+                            cur_freq = 1000/(255+p2-plast);
+                        }
+                        else
+                            plast = i;
+                    }
                 }
+                
             }
-            
-            // Calculate frequency
-            int freq = 1000/(p2-p1);
-            if(freq > 0 && freq < 101) {
-                lcd_cursor(0,5);
-                char msg[8];
-                sprintf(msg, "%03dkHz", freq);
-                lcd_write(msg, sizeof(msg));
-            } else {
-                lcd_cursor(0,2);
-                char msg[] = "OUT OF RANGE";
-                lcd_write(msg, sizeof(msg));
-            }
-            
+
         }
         
+        //update LCD
+        if(update_cycles >= 1000000) {
+            update_cycles=0;
+            char freq_str[16];
+            sprintf(freq_str, "%d\n\r", cur_freq);
+            uart_printf(freq_str);
+            if(cur_freq > 0 && cur_freq < 101) {
+                lcd_cursor(0,5);
+                char msg[8];
+                sprintf(msg, "%03dkHz", cur_freq);
+                lcd_write(msg, sizeof(msg));
+            } else {
+                lcd_cursor(0,5);
+                char msg[] = "OOR   ";
+                lcd_write(msg, sizeof(msg));
+            }
+        } else {
+            update_cycles++;
+        }
     }
 }
 

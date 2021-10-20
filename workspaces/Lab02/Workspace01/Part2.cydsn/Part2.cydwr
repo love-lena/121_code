@@ -599,7 +599,7 @@
   <Group key="Pin2">
     <Group key="0113321b-4a37-46f6-8407-2f8646c68756">
       <Group key="0">
-        <Data key="Port Format" value="10,0" />
+        <Data key="Port Format" value="10,2" />
       </Group>
     </Group>
     <Group key="a61270bc-07ec-447d-ac9e-34cfe85c30e9">
