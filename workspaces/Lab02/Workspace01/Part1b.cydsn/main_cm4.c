@@ -125,7 +125,7 @@ int main(void)
     {
         if(dma_1_done) {
             //produce error:
-            dst[100] = 101;
+            dst[4079] = 101;
             
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
             uart_printf("dma 1 done in loop\n\r");
