@@ -163,6 +163,10 @@ int main(void)
     for(;;)
     {
         if(dma_1_done) {
+            //produce error:
+            dst[100] = 101;
+            
+            Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
             //uart_printf("dma 1 done in loop\n\r");
             bool mismatch = false;
             for(int i = 0; i < dst_block_size/16; i++) {
@@ -189,8 +193,10 @@ int main(void)
                     uart_printf("\n\r");
                 }
             }
-            if(mismatch)
+            if(mismatch) {
                 uart_printf("ERROR: some bytes were not copied correctly\n\r");
+                Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+            }
 
             dma_1_done = 0;
             dma_1_error = 0;

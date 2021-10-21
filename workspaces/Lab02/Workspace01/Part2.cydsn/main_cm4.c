@@ -134,10 +134,10 @@ int main(void)
                 previous_buffer_cross_point = find_crossing_point(read_from_buffer);
                 for(int i = 1; i < 256; i++) {
                     bool seconds = false;
-                    if(((read_from_buffer[i] > working_crosspoint) && 
-                            (read_from_buffer[i-1] < working_crosspoint)) || 
-                            ((read_from_buffer[i] < working_crosspoint) && 
-                            (read_from_buffer[i-1] > working_crosspoint)))
+                    if(((read_from_buffer[i] > previous_buffer_cross_point) && 
+                            (read_from_buffer[i-1] < previous_buffer_cross_point)) || 
+                            ((read_from_buffer[i] < previous_buffer_cross_point) && 
+                            (read_from_buffer[i-1] > previous_buffer_cross_point)))
                     {//we have crossed the crosspoint
                         previous_buffer_second_to_last_cross = previous_buffer_last_cross; //will be 0 first time
                         previous_buffer_last_cross = i; //set to last point
