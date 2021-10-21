@@ -172,9 +172,9 @@ int main(void)
                             first_item = false;
                             
                             if(using_two_ago) {
-                                cur_freq = 1000/(512+i-two_buffer_ago_last_cross); //compare current point with point two buffers ago
+                                cur_freq = 925/(512+i-two_buffer_ago_last_cross); //compare current point with point two buffers ago
                             } else {
-                                cur_freq = 1000/(256+i-previous_buffer_second_to_last_cross); //compare current point with point in last buffer
+                                cur_freq = 925/(256+i-previous_buffer_second_to_last_cross); //compare current point with point in last buffer
                             }
                             
                             two_buffer_ago_last_cross = previous_buffer_last_cross;
