@@ -20,10 +20,14 @@ int UART_INT_count = 0;
 uint32_t end_time;
 
 void TxDMA_done_ISR(void) {
+    UART_1_HW->INTR_TX_MASK = 0;
     Cy_DMA_Channel_ClearInterrupt(TxDMA_HW, TxDMA_DW_CHANNEL);
 }
 
 void RxDMA_done_ISR(void) {
+    UART_1_HW->INTR_TX_MASK = 0;
+    UART_1_HW->INTR_RX_MASK = 0;
+    
     end_time = Throughput_timer_GetCounter();
     Throughput_timer_TriggerStop();
     transfer_complete++;
@@ -158,19 +162,18 @@ int main(void)
             //bytes/sec = BLOCK_SIZE/total_time(in sec)
             //          = BLOCK_SIZE * 10^6 / total_time
             // using BLOCK_SIZE = 4096, bytes/sec = 4,096,000,000 / total_time
-            
-            uint32_t start_time = 4294967295u;
-            uint32_t total_time = start_time - end_time;
 
-            int bytes_per_sec = 4096000000 / total_time;
+            uint32_t magic_num = 4096000000;
+            
+            uint32_t bytes_per_sec = magic_num / end_time;
             
             lcd_cursor(1,0);
             char msg_bps[] = "Bps:";
             lcd_write(msg_bps, sizeof(msg_bps));
             
             lcd_cursor(1,5);
-            char msg_bps_num[8];
-            sprintf(msg_bps_num, "%08d", bytes_per_sec);
+            char msg_bps_num[6];
+            sprintf(msg_bps_num, "%05u", bytes_per_sec);
             lcd_write(msg_bps_num, sizeof(msg_bps_num));
             
             transfer_complete = 2;

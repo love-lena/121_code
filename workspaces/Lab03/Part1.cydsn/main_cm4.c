@@ -130,8 +130,6 @@ int main(void)
             //          = BLOCK_SIZE * 10^6 / total_time
             // using BLOCK_SIZE = 4096, bytes/sec = 4,096,000,000 / total_time
             
-            uint32_t start_time = 4294967295u;
-            uint32_t total_time = start_time - end_time;
             uint32_t magic_num = 4096000000;
             
             uint32_t bytes_per_sec = magic_num / end_time;
