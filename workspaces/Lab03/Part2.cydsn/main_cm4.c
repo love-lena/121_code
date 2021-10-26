@@ -159,7 +159,7 @@ int main(void)
             //          = BLOCK_SIZE * 10^6 / total_time
             // using BLOCK_SIZE = 4096, bytes/sec = 4,096,000,000 / total_time
             
-            uint32_t start_time = 65535;
+            uint32_t start_time = 4294967295u;
             uint32_t total_time = start_time - end_time;
 
             int bytes_per_sec = 4096000000 / total_time;
@@ -169,8 +169,8 @@ int main(void)
             lcd_write(msg_bps, sizeof(msg_bps));
             
             lcd_cursor(1,5);
-            char msg_bps_num[6];
-            sprintf(msg_bps_num, "%06d", bytes_per_sec);
+            char msg_bps_num[8];
+            sprintf(msg_bps_num, "%08d", bytes_per_sec);
             lcd_write(msg_bps_num, sizeof(msg_bps_num));
             
             transfer_complete = 2;

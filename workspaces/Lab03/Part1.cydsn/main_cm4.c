@@ -26,7 +26,7 @@ void UART_1_ISR(void) {
     uint32_t txStatus = Cy_SCB_UART_GetTxFifoStatus(UART_1_HW);
     uint32_t rxStatus = Cy_SCB_UART_GetRxFifoStatus(UART_1_HW);
     
-    if(txStatus & CY_SCB_UART_TX_EMPTY) {
+    if((txStatus & CY_SCB_UART_TX_EMPTY) && (UART_1_HW->INTR_TX_MASK)!=0) {
         if(!transfer_complete)
             tx_fifo_empty_int_count++;
         
@@ -34,9 +34,16 @@ void UART_1_ISR(void) {
         Cy_SCB_UART_Put(UART_1_HW, src[tx_counter++]);
         
         Cy_SCB_UART_ClearTxFifoStatus(UART_1_HW, CY_SCB_UART_TX_EMPTY);
-    } else if(rxStatus & CY_SCB_UART_RX_NOT_EMPTY) {
-        if(rx_counter == 0) 
+    } 
+    if(tx_counter >= 4096) {
+        UART_1_HW->INTR_TX_MASK = 0;
+    }
+    
+    if(rxStatus & CY_SCB_UART_RX_NOT_EMPTY) {
+        if(rx_counter == 0) {
             Throughput_timer_TriggerStart();
+            Throughput_timer_Start();   
+        }
         if(!transfer_complete)
             rx_fifo_not_empty_int_count++;
         
@@ -50,6 +57,11 @@ void UART_1_ISR(void) {
             Throughput_timer_TriggerStop();
             transfer_complete++;
         }
+    }
+    
+    if(rx_counter >= 4096) {
+        UART_1_HW->INTR_TX_MASK = 0;
+        UART_1_HW->INTR_RX_MASK = 0;
     }
     
 }
@@ -118,10 +130,11 @@ int main(void)
             //          = BLOCK_SIZE * 10^6 / total_time
             // using BLOCK_SIZE = 4096, bytes/sec = 4,096,000,000 / total_time
             
-            uint32_t start_time = 65535;
+            uint32_t start_time = 4294967295u;
             uint32_t total_time = start_time - end_time;
-
-            int bytes_per_sec = 4096000000 / total_time;
+            uint32_t magic_num = 4096000000;
+            
+            uint32_t bytes_per_sec = magic_num / end_time;
             
             lcd_cursor(1,0);
             char msg_bps[] = "Bps:";
@@ -129,7 +142,7 @@ int main(void)
             
             lcd_cursor(1,5);
             char msg_bps_num[6];
-            sprintf(msg_bps_num, "%06d", bytes_per_sec);
+            sprintf(msg_bps_num, "%05u", bytes_per_sec);
             lcd_write(msg_bps_num, sizeof(msg_bps_num));
             
             transfer_complete = 2;
