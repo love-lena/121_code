@@ -21,7 +21,7 @@ int tx_fifo_empty_int_count = 0;
 int rx_fifo_overflow_count = 0;
 
 void readISR(void) {
-    Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 0);
+    //Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 0);
     uint32_t interrupts = Cy_TCPWM_GetInterruptStatusMasked(half_milli_HW, 0);
     Cy_TCPWM_ClearInterrupt(half_milli_HW, 0, interrupts);
     uint32_t rxStatus = Cy_SCB_UART_GetRxFifoStatus(UART_1_HW);
@@ -49,7 +49,7 @@ void readISR(void) {
 }
 
 void UART_1_ISR(void) {
-    Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+    //Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
     uint32_t txStatus = Cy_SCB_UART_GetTxFifoStatus(UART_1_HW);
     
     if((txStatus & CY_SCB_UART_TX_EMPTY) && (UART_1_HW->INTR_TX_MASK)!=0) {
@@ -62,13 +62,13 @@ void UART_1_ISR(void) {
         Cy_SCB_UART_ClearTxFifoStatus(UART_1_HW, CY_SCB_UART_TX_EMPTY);
     } 
     if(tx_counter >= 4096) {
-        half_milli_TriggerStop();
-        half_milli_SetCounter(500);
+        //half_milli_TriggerStop();
+        //half_milli_SetCounter(500);
         Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
         Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 1);
-        transfer_complete = 1;
+        //transfer_complete = 1;
         UART_1_HW->INTR_TX_MASK = 0;
-        UART_1_HW->INTR_RX_MASK = 0;
+        //UART_1_HW->INTR_RX_MASK = 0;
     }
     
 }
