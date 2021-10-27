@@ -26,10 +26,11 @@ void readISR(void) {
     Cy_TCPWM_ClearInterrupt(half_milli_HW, 0, interrupts);
     uint32_t rxStatus = Cy_SCB_UART_GetRxFifoStatus(UART_1_HW);
     
-    if(rxStatus & CY_SCB_UART_RX_NOT_EMPTY) {
-        if(!transfer_complete)
-            rx_fifo_overflow_count++;
+    if(rxStatus & CY_SCB_UART_RX_OVERFLOW) {
+        rx_fifo_overflow_count++;
+    }
         
+    if(rxStatus & CY_SCB_UART_RX_NOT_EMPTY) {
         //read byte
         dst[rx_counter++] = Cy_SCB_UART_Get(UART_1_HW);
         
@@ -116,26 +117,28 @@ int main(void)
     for(;;)
     {
         if(transfer_complete == 1) { //All data recieved
+            
+            int error_count = 0;
             for(int i = 0; i < BLOCK_SIZE; i++) {
                 if(dst[i] != src[i]) {
                     Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
-                    break;
+                    error_count++;
                 }
             }
             
             
             lcd_cursor(0,0);
-            char msg_rx[12];
-            sprintf(msg_rx, "ovf: %06d", rx_fifo_overflow_count);
+            char msg_rx[11];
+            sprintf(msg_rx, "ovf: %05d", rx_fifo_overflow_count);
             lcd_write(msg_rx, sizeof(msg_rx));
             
             lcd_cursor(1,0);
-            char msg_bps[] = "Bps:";
+            char msg_bps[] = "err:";
             lcd_write(msg_bps, sizeof(msg_bps));
             
             lcd_cursor(1,5);
             char msg_bps_num[6];
-            sprintf(msg_bps_num, "%05u", 0);
+            sprintf(msg_bps_num, "%05d", error_count);
             lcd_write(msg_bps_num, sizeof(msg_bps_num));
             
             transfer_complete = 2;
