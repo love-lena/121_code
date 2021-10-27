@@ -9,9 +9,10 @@
 #include <stdio.h>
 
 // block_size: how many bytes in our source block
-const int BLOCK_SIZE = 4096;
-uint8 src[4096];
-uint8 dst[4096];
+#define BLOCK_SIZE 4096
+
+uint8 src[BLOCK_SIZE];
+uint8 dst[BLOCK_SIZE];
 
 int transfer_complete = 0;
 
@@ -28,6 +29,7 @@ void RxDMA_done_ISR(void) {
     UART_1_HW->INTR_TX_MASK = 0;
     UART_1_HW->INTR_RX_MASK = 0;
     
+    //Measure total time to transfer
     end_time = Throughput_timer_GetCounter();
     Throughput_timer_TriggerStop();
     transfer_complete++;
@@ -36,6 +38,7 @@ void RxDMA_done_ISR(void) {
 
 
 void UART_1_ISR(void) {
+    //Record then clear interrupt reasons
     UART_INT_count++;
     Cy_SCB_UART_ClearTxFifoStatus(UART_1_HW, CY_SCB_UART_TX_OVERFLOW);
     
@@ -71,17 +74,14 @@ int main(void)
     }
 
     //UART_1 setup
-    cy_en_scb_uart_status_t init_status = Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
-    if(init_status != CY_SCB_UART_SUCCESS) {
-        //bad things
-    }
+    Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
     
     
     //UART ISR setup
     Cy_SysInt_Init(&UART_1_INT_cfg, UART_1_ISR);
     NVIC_EnableIRQ(UART_1_INT_cfg.intrSrc);
     
-    Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 1);
+    
     //DMA Setup
     
     //TX
@@ -101,7 +101,7 @@ int main(void)
     
     Cy_DMA_Channel_SetInterruptMask(TxDMA_HW, TxDMA_DW_CHANNEL, CY_DMA_INTR_MASK);
     
-    //ISR
+    //TX ISR
     Cy_SysInt_Init(&TxDMA_INT_cfg, TxDMA_done_ISR);
     NVIC_EnableIRQ(TxDMA_INT_cfg.intrSrc);
     
@@ -122,7 +122,7 @@ int main(void)
 
     Cy_DMA_Channel_SetInterruptMask(RxDMA_HW, RxDMA_DW_CHANNEL, CY_DMA_INTR_MASK);
     
-    //ISR
+    //RX ISR
     Cy_SysInt_Init(&RxDMA_INT_cfg, RxDMA_done_ISR);
     NVIC_EnableIRQ(RxDMA_INT_cfg.intrSrc);
     __enable_irq();
@@ -144,9 +144,8 @@ int main(void)
     for(;;)
     {
         if(transfer_complete == 1) { //All data recieved
-            //produce error:
-            //dst[4079] = 101;
             
+            //Check for data mismatches
             for(int i = 0; i < BLOCK_SIZE; i++) {
                 if(dst[i] != src[i]) {
                     Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
@@ -154,18 +153,20 @@ int main(void)
                 }
             }
             
+            // Print to LCD
             lcd_cursor(0,0);
             char msg_uart_err[14];
             sprintf(msg_uart_err, "uart err: %04d", UART_INT_count);
             lcd_write(msg_uart_err, sizeof(msg_uart_err));
             
-            //bytes/sec = BLOCK_SIZE/total_time(in sec)
-            //          = BLOCK_SIZE * 10^6 / total_time
+            // bytes/sec = BLOCK_SIZE/total_time(in sec)
+            // with a 1MHz clock:
+            //           = BLOCK_SIZE * 10^6 / total_time
             // using BLOCK_SIZE = 4096, bytes/sec = 4,096,000,000 / total_time
 
-            uint32_t magic_num = 4096000000;
+            const uint32_t bps_constant = 4096000000;
             
-            uint32_t bytes_per_sec = magic_num / end_time;
+            uint32_t bytes_per_sec = bps_constant / end_time;
             
             lcd_cursor(1,0);
             char msg_bps[] = "Bps:";

@@ -9,9 +9,10 @@
 #include <stdio.h>
 
 // block_size: how many bytes in our source block
-const int BLOCK_SIZE = 4096;
-uint8 src[4096];
-uint8 dst[4096];
+#define BLOCK_SIZE 4096
+
+uint8 src[BLOCK_SIZE];
+uint8 dst[BLOCK_SIZE];
 int tx_counter = 0;
 int rx_counter = 0;
 
@@ -21,15 +22,18 @@ int tx_fifo_empty_int_count = 0;
 int rx_fifo_overflow_count = 0;
 
 void readISR(void) {
-    //Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 0);
+
+    //Clear .5ms timer interrupts
     uint32_t interrupts = Cy_TCPWM_GetInterruptStatusMasked(half_milli_HW, 0);
     Cy_TCPWM_ClearInterrupt(half_milli_HW, 0, interrupts);
     uint32_t rxStatus = Cy_SCB_UART_GetRxFifoStatus(UART_1_HW);
     
+    //Record RX overflow
     if(rxStatus & CY_SCB_UART_RX_OVERFLOW) {
         rx_fifo_overflow_count++;
     }
         
+    //Read RX byte
     if(rxStatus & CY_SCB_UART_RX_NOT_EMPTY) {
         //read byte
         dst[rx_counter++] = Cy_SCB_UART_Get(UART_1_HW);
@@ -37,11 +41,10 @@ void readISR(void) {
         Cy_SCB_UART_ClearRxFifoStatus(UART_1_HW, CY_SCB_UART_RX_NOT_EMPTY);
     }
     
-    if(rx_counter >= 4096) {
+    //All RX bytes are recieved
+    if(rx_counter >= BLOCK_SIZE) {
         half_milli_TriggerStop();
         half_milli_SetCounter(500);
-        Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
-        Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 1);
         transfer_complete = 1;
         UART_1_HW->INTR_TX_MASK = 0;
         UART_1_HW->INTR_RX_MASK = 0;
@@ -49,9 +52,10 @@ void readISR(void) {
 }
 
 void UART_1_ISR(void) {
-    //Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+
     uint32_t txStatus = Cy_SCB_UART_GetTxFifoStatus(UART_1_HW);
     
+    //Send TX byte
     if((txStatus & CY_SCB_UART_TX_EMPTY) && (UART_1_HW->INTR_TX_MASK)!=0) {
         if(!transfer_complete)
             tx_fifo_empty_int_count++;
@@ -61,14 +65,10 @@ void UART_1_ISR(void) {
         
         Cy_SCB_UART_ClearTxFifoStatus(UART_1_HW, CY_SCB_UART_TX_EMPTY);
     } 
-    if(tx_counter >= 4096) {
-        //half_milli_TriggerStop();
-        //half_milli_SetCounter(500);
-        Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
-        Cy_GPIO_Write(LED_1_PORT, LED_1_NUM, 1);
-        //transfer_complete = 1;
+    
+    //Disable TX once all bytes are sent
+    if(tx_counter >= BLOCK_SIZE) {
         UART_1_HW->INTR_TX_MASK = 0;
-        //UART_1_HW->INTR_RX_MASK = 0;
     }
     
 }
@@ -99,17 +99,14 @@ int main(void)
     }
 
     //UART_1 setup
-    cy_en_scb_uart_status_t init_status = Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
-    if(init_status != CY_SCB_UART_SUCCESS) {
-        //bad things
-    }
+    Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
     Cy_SCB_UART_Enable(UART_1_HW);
     
     //UART ISR setup
     Cy_SysInt_Init(&UART_1_INT_cfg, UART_1_ISR);
     NVIC_EnableIRQ(UART_1_INT_cfg.intrSrc);
     
-    //0.5 millisecond timer
+    //0.5 millisecond timer setup
     half_milli_Start();
     Cy_SysInt_Init(&half_milli_int_cfg, readISR);
     NVIC_EnableIRQ(half_milli_int_cfg.intrSrc);
@@ -118,6 +115,7 @@ int main(void)
     {
         if(transfer_complete == 1) { //All data recieved
             
+            //Check for data mismatches
             int error_count = 0;
             for(int i = 0; i < BLOCK_SIZE; i++) {
                 if(dst[i] != src[i]) {
@@ -126,7 +124,7 @@ int main(void)
                 }
             }
             
-            
+            // Print to LCD
             lcd_cursor(0,0);
             char msg_rx[11];
             sprintf(msg_rx, "ovf: %05d", rx_fifo_overflow_count);

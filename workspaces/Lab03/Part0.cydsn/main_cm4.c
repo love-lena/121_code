@@ -26,10 +26,7 @@ int main(void)
 {
     
     //UART_1 setup
-    cy_en_scb_uart_status_t init_status = Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
-    if(init_status != CY_SCB_UART_SUCCESS) {
-        //bad things
-    }
+    Cy_SCB_UART_Init(UART_1_HW, &UART_1_config, &UART_1_context);
     Cy_SCB_UART_Enable(UART_1_HW);
     
     //UART ISR setup
