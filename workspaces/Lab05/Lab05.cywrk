@@ -8,6 +8,7 @@
 <files />
 <projects>
 <v>.\Part1.cydsn\Part1.cyprj</v>
+<v>.\Traffic_Generator.cydsn\Traffic_Generator.cyprj</v>
 </projects>
 <workspace_id v="8d8365e1-f31e-4e8c-9178-c644489bd1bb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />
