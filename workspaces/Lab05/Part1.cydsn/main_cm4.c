@@ -36,9 +36,11 @@ void soft_uart_error() {
     uint8_t error_byte = 0;
     
     TickType_t ending_time = 0;
-    bool half_brightness = 0;
-    bool half_brightness_switch = 0;
     
+    //0 -> off
+    //1 -> half
+    //2 -> full
+    int brightness_level = 0;
     
     for (;;){
         
@@ -47,43 +49,35 @@ void soft_uart_error() {
         
         if(error_byte == FRAMING_ERROR) {
     
-            //Turn on LED
-            Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+            brightness_level = 2;
             //Set delay for 5 seconds at 100khz
             ending_time = xTaskGetTickCount() + 500000;
-            half_brightness = 0;
             
         } else if(error_byte == PARITY_ERROR) {
 
-            //Enable half brightness
-            half_brightness = 1;
+            brightness_level = 1;
             //Set delay for 5 seconds at 100khz
             ending_time = xTaskGetTickCount() + 500000;
             
         }
         
-        if(half_brightness) {  
+        if(brightness_level == 2) {
             
-            //toggle LED
-            half_brightness_switch = !half_brightness_switch;
-            
-            //2 on then off until next loop to create desired amount of brightness
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0);
+            
+        } else if(brightness_level == 1) {  
+            
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 0); 
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
             
-        }
-        
-        //TickType_t current_tick = xTaskGetTickCount();
-        
-        //char recieved_data[100];
-        //sprintf(recieved_data, "%u > %u = %d\r\n", current_tick, ending_time, (current_tick > ending_time)); //put byte in output string
-        //xQueueSend(print_queue, recieved_data, 0);    
+        }   
             
         if(xTaskGetTickCount() > ending_time) {
+            
             //Turn off LED
-            half_brightness = 0;
+            brightness_level = 0;
             Cy_GPIO_Write(LED_0_PORT, LED_0_NUM, 1);
+            
         }
     } 
 }
