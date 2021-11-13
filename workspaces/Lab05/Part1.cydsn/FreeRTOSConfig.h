@@ -42,13 +42,11 @@
 
 #include "syslib/cy_syslib.h"
 
-#warning This is a template. Modify it according to your project and remove this line. 
-
 #define configUSE_PREEMPTION                    1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 #define configUSE_TICKLESS_IDLE                 0
 #define configCPU_CLOCK_HZ                      SystemCoreClock
-#define configTICK_RATE_HZ                      1000u
+#define configTICK_RATE_HZ                      100000u
 #define configMAX_PRIORITIES                    7
 #define configMINIMAL_STACK_SIZE                128
 #define configMAX_TASK_NAME_LEN                 16
