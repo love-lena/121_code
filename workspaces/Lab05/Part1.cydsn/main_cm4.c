@@ -91,6 +91,10 @@ void soft_uart_error() {
 void soft_uart_reciever() {
     char recieved_data[100];
     
+    TickType_t one_second_from_now = 0;
+    unsigned int bytes_recieved = 0;
+    char bps_string[100];
+    
     for(;;) {
 
         while(Status_Reg_1_Read()) { //Wait until edge of start bit
@@ -144,7 +148,18 @@ void soft_uart_reciever() {
         }
         
         if(!err) {
-            //xQueueSend(print_queue, recieved_data, 0); //Print the data
+            bytes_recieved++;
+        }
+        
+        //Print throughput every second
+        if(xTaskGetTickCount() > one_second_from_now) {
+            
+            sprintf(bps_string, "BPS: %04d\r\n", bytes_recieved);
+            xQueueSend(print_queue, bps_string, 0);
+            
+            bytes_recieved = 0;
+            one_second_from_now = xTaskGetTickCount() + 100000;
+            
         }
         
         while(!Status_Reg_1_Read()) { //wait until we go high
