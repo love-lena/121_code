@@ -3,13 +3,14 @@
 <!--This file is machine generated and read. It is not intended to be edited by hand.-->
 <!--Due to this, there is no schema for this file.-->
 <CyGuid_2867d519-54d2-4c01-9830-c51cb08bc3dd type_name="CyDesigner.Common.ProjMgmt.Model.CyPrjMgmtWorkspaceSerialize" version="5" xml_contents_version="3" name="Lab05" persistent="Lab05.cywrk" platform="NOT_USED">
-<current_project name=".\Part2.cydsn\Part2.cyprj" />
+<current_project name=".\Part2_EC.cydsn\Part2_EC.cyprj" />
 <wrkspc_folders />
 <files />
 <projects>
 <v>.\Part1.cydsn\Part1.cyprj</v>
 <v>.\Traffic_Generator.cydsn\Traffic_Generator.cyprj</v>
 <v>.\Part2.cydsn\Part2.cyprj</v>
+<v>.\Part2_EC.cydsn\Part2_EC.cyprj</v>
 </projects>
 <workspace_id v="8d8365e1-f31e-4e8c-9178-c644489bd1bb" />
 <WriteAppVersionLastSavedWith v="4.4.0.80" />
