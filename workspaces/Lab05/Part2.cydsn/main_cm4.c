@@ -20,7 +20,7 @@ QueueHandle_t print_queue;
 QueueHandle_t error_queue;
 
 void uart_printf(){ 
-    char print_string[100]; // string to print 
+    char print_string[50]; // string to print 
     // Initialize UART 
     Cy_SCB_UART_Init(UART_PRINTF_HW, &UART_PRINTF_config, &UART_PRINTF_context); 
 
@@ -119,9 +119,9 @@ void soft_uart_error() {
 
 
 void soft_uart_0() {
-    char recieved_data[100];
+    //char recieved_data[100];
     
-    TickType_t one_second_from_now = 0;
+    TickType_t one_second_from_now = xTaskGetTickCount() + 0;
     int bytes_recieved = 0;
     char bps_string[20];
     
@@ -152,7 +152,7 @@ void soft_uart_0() {
             byte = byte | bit; //Save bit to byte
         }
         
-        sprintf(recieved_data, "%x\r\n", byte); //put byte in output string
+        //sprintf(recieved_data, "%x\r\n", byte); //put byte in output string
         
         //Error checking
         uint8_t err[] = {0,0};
@@ -184,8 +184,8 @@ void soft_uart_0() {
         //Print throughput every second
         if(xTaskGetTickCount() > one_second_from_now) {
             
-            //sprintf(bps_string, "uart_0 BPS: %04d\r\n", bytes_recieved);
-            sprintf(bps_string, "%d", bytes_recieved);
+            sprintf(bps_string, "0:%d\r\n", bytes_recieved);
+            //sprintf(bps_string, "%d", bytes_recieved);
             xQueueSend(print_queue, bps_string, 0);
             
             bytes_recieved = 0;
@@ -200,9 +200,9 @@ void soft_uart_0() {
 }
 
 void soft_uart_1() {
-    char recieved_data[100];
+    //char recieved_data[100];
     
-    TickType_t one_second_from_now = 0;
+    TickType_t one_second_from_now = xTaskGetTickCount() + 50000;
     unsigned int bytes_recieved = 0;
     char bps_string[20];
     
@@ -233,7 +233,7 @@ void soft_uart_1() {
             byte = byte | bit; //Save bit to byte
         }
         
-        sprintf(recieved_data, "%x\r\n", byte); //put byte in output string
+        //sprintf(recieved_data, "%x\r\n", byte); //put byte in output string
         
         //Error checking
         uint8_t err[] = {1,0};
@@ -265,7 +265,8 @@ void soft_uart_1() {
         //Print throughput every second
         if(xTaskGetTickCount() > one_second_from_now) {
             
-            sprintf(bps_string, "%d", bytes_recieved);
+            sprintf(bps_string, "1:%d\r\n", bytes_recieved);
+            //sprintf(bps_string, "%d", bytes_recieved);
             xQueueSend(print_queue, bps_string, 0);
             
             bytes_recieved = 0;
@@ -284,7 +285,7 @@ int main(void)
 {
     __enable_irq(); 
     
-    print_queue = xQueueCreate(4, 100);
+    print_queue = xQueueCreate(4, 50);
     error_queue = xQueueCreate(4, 2);
     
     xTaskCreate(soft_uart_0, "SOFT_UART_0", 400, NULL, 2, 0); 
