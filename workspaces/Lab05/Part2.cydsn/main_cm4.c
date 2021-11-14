@@ -58,7 +58,7 @@ void soft_uart_error() {
             //Set delay for 5 seconds at 100khz
             ending_time[uart_num] = xTaskGetTickCount() + 500000;
             
-            xQueueSend(print_queue, "F", 0);
+            //xQueueSend(print_queue, "F", 0);
             
         } else if(error_code == PARITY_ERROR) {
 
@@ -66,7 +66,7 @@ void soft_uart_error() {
             //Set delay for 5 seconds at 100khz
             ending_time[uart_num] = xTaskGetTickCount() + 500000;
             
-            xQueueSend(print_queue, "P", 0);
+            //xQueueSend(print_queue, "P", 0);
         }
         
         //uart 0 - red led
